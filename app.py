@@ -63,7 +63,7 @@ def authorize():
         )
 
         # 获取授权 URL
-        request_token_url = "https://api.twitter.com/oauth/request_token"
+        request_token_url = "https://api.x.com/oauth/request_token"
         oauth_session.fetch_request_token(request_token_url)
 
         # 保存 request_token 到 session，供 callback 使用
@@ -71,7 +71,7 @@ def authorize():
 
         # 生成授权 URL 并重定向
         authorization_url = oauth_session.authorization_url(
-            "https://api.twitter.com/oauth/authorize"
+            "https://api.x.com/oauth/authorize"
         )
         return redirect(authorization_url)
 
@@ -109,7 +109,7 @@ def callback():
         )
 
         # 交换得到正式的 Access Token
-        access_token_url = "https://api.twitter.com/oauth/access_token"
+        access_token_url = "https://api.x.com/oauth/access_token"
         oauth_session.fetch_access_token(access_token_url)
 
         # 获取 access_token 信息
