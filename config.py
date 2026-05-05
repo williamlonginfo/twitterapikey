@@ -4,10 +4,10 @@ Twitter API 授权服务配置文件
 """
 
 # Twitter Developer Portal 申请的 Consumer Key (API Key)
-API_KEY = "你的API_KEY"
+API_KEY = "DLYOSZMo8x6HofSPDwDkRhMYw"
 
 # Twitter Developer Portal 申请的 Consumer Secret (API Secret)
-API_SECRET = "你的API_SECRET"
+API_SECRET = "jgn838O0owhN0xtDP7p2RpDOrpdNVh0sH84hsuyuyJVc666vol"
 
 # OAuth 回调地址，必须与 Twitter App 设置中的一致
 CALLBACK_URL = "http://127.0.0.1:5000/callback"
