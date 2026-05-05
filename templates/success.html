@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>授权成功 - Twitter API 授权服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 50px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .token-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .token-section h3 {
+            color: #333;
+            font-size: 1em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .token-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            color: #333;
+            user-select: all;
+        }
+
+        .token-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: #1da1f2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0d8ddb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(29, 161, 242, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .copy-hint {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 20px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        .account-id {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+
+            <h1>🎉 授权成功！</h1>
+            <p class="subtitle">已成功获取 Twitter 账号的访问凭证</p>
+
+            <div class="account-id">账号ID: {{ account_id }}</div>
+
+            <div class="token-section">
+                <h3>🔑 Access Token</h3>
+                <div class="token-box" id="oauthToken">{{ oauth_token }}</div>
+            </div>
+
+            <div class="token-section">
+                <h3>🔐 Access Token Secret</h3>
+                <div class="token-box" id="oauthTokenSecret">{{ oauth_token_secret }}</div>
+            </div>
+
+            <p class="copy-hint">💡 直接选中文本即可复制，或双击文本框全选</p>
+
+            <div class="warning">
+                ⚠️ <strong>安全提示：</strong>Access Token 是账号的敏感信息，请妥善保管，切勿泄露给他人！
+            </div>
+
+            <div style="margin-top: 30px;">
+                <a href="/" class="btn btn-primary">📋 返回首页</a>
+                <button class="btn btn-secondary" onclick="copyAllTokens()">📋 复制全部凭证</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 双击文本框全选
+        document.querySelectorAll('.token-box').forEach(box => {
+            box.addEventListener('dblclick', function() {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(this);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            });
+        });
+
+        // 复制全部凭证
+        function copyAllTokens() {
+            const token = document.getElementById('oauthToken').textContent;
+            const secret = document.getElementById('oauthTokenSecret').textContent;
+            const text = `oauth_token: ${token}\noauth_token_secret: ${secret}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ 凭证已复制到剪贴板！');
+            }).catch(() => {
+                // 降级方案：使用传统方法
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ 凭证已复制到剪贴板！');
+            });
+        }
+    </script>
+</body>
+</html>

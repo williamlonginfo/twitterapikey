@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter API 授权服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: #1da1f2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0d8ddb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(29, 161, 242, 0.4);
+        }
+
+        .btn-danger {
+            background: #e0245e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c41e4a;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .accounts-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .account-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-info h3 {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .account-info p {
+            color: #666;
+            font-family: monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1da1f2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .config-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐦 Twitter API 授权服务</h1>
+            <p>本地网页一键授权，自动获取 Access Token / Secret</p>
+        </div>
+
+        <div id="configAlert" class="card" style="display: none;">
+            <div class="config-note">
+                <strong>⚠️ 配置提示：</strong>请先在 <code>config.py</code> 中配置你的 Twitter API Key 和 Secret
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 已授权账号</h2>
+            <div id="accountsList" class="accounts-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>➕ 添加新账号</h2>
+            <p style="color: #666; margin-bottom: 20px;">点击下方按钮开始授权流程，授权成功后会自动保存凭证到本地。</p>
+            <a href="/authorize" class="btn btn-primary" id="authBtn">🚀 开始授权</a>
+        </div>
+
+        <div class="card">
+            <h2>💾 导出凭证</h2>
+            <p style="color: #666; margin-bottom: 20px;">导出所有账号的授权凭证为 JSON 文件，方便备份或转移到其他应用。</p>
+            <a href="/export" class="btn btn-secondary">📥 导出 tokens.json</a>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时获取账号列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+            checkConfig();
+        });
+
+        // 加载已授权账号列表
+        function loadAccounts() {
+            fetch('/accounts')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('accountsList');
+                    if (data.total === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>暂无已授权账号</p>
+                                <p style="font-size: 0.9em; margin-top: 10px;">点击上方"开始授权"按钮添加第一个账号</p>
+                            </div>
+                        `;
+                    } else {
+                        let html = '';
+                        data.accounts.forEach(account => {
+                            html += `
+                                <div class="account-item">
+                                    <div class="account-info">
+                                        <h3>${account.id}</h3>
+                                        <p>Token: ${account.token_prefix}...</p>
+                                    </div>
+                                    <div class="account-actions">
+                                        <button class="btn btn-secondary" onclick="viewAccount('${account.id}')">👁️ 查看</button>
+                                        <button class="btn btn-danger" onclick="deleteAccount('${account.id}')">🗑️ 删除</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载账号失败:', error);
+                });
+        }
+
+        // 查看账号完整凭证
+        function viewAccount(accountId) {
+            fetch(`/account/${accountId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('获取账号信息失败: ' + data.error);
+                    } else {
+                        const token = prompt(`账号: ${accountId}\n\nAccess Token:\n${data.oauth_token}\n\nAccess Token Secret:\n${data.oauth_token_secret}\n\n请妥善保管以上凭证！`, `oauth_token: ${data.oauth_token}\noauth_token_secret: ${data.oauth_token_secret}`);
+                    }
+                })
+                .catch(error => {
+                    alert('获取账号信息失败');
+                });
+        }
+
+        // 删除账号
+        function deleteAccount(accountId) {
+            if (confirm(`确定要删除账号 ${accountId} 吗？删除后需要重新授权。`)) {
+                fetch(`/delete/${accountId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        loadAccounts();
+                    } else {
+                        alert('删除失败: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('删除失败');
+                });
+            }
+        }
+
+        // 检查配置是否正确
+        function checkConfig() {
+            // 简单的配置检查提示
+            const authBtn = document.getElementById('authBtn');
+            if ('你的API_KEY' === '{{API_KEY}}' || '你的API_SECRET' === '{{API_SECRET}}') {
+                document.getElementById('configAlert').style.display = 'block';
+                authBtn.onclick = function(e) {
+                    e.preventDefault();
+                    alert('请先配置 config.py 中的 API_KEY 和 API_SECRET');
+                };
+            }
+        }
+    </script>
+</body>
+</html>
